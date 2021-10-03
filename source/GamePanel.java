@@ -27,7 +27,7 @@ public class GamePanel extends JPanel implements ActionListener {
     GamePanel(){
         random = new Random();
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT+50));
-        this.setBackground(Color.black);
+        this.setBackground(new Color(65,74,76));
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         startGame();
