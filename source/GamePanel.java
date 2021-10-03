@@ -10,9 +10,11 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int SCREEN_HEIGHT = 600;
     static final int UNIT_SIZE = 25; //object size
     static final int GAME_UNITS = (SCREEN_WIDTH*SCREEN_HEIGHT)/UNIT_SIZE; // how many objects appear on screen
-    static final int DELAY = 75; //higher number, slower game
-    final int x[] = new int[GAME_UNITS];
-    final int y[] = new int[GAME_UNITS];
+    static final int DELAY = 100; //higher number, slower game
+    final int[] x = new int[GAME_UNITS];
+    final int[] y = new int[GAME_UNITS];
+    int highScore;
+    int topLength;
     int bodyParts = 6; //size of snake
     int applesEaten = 0;
     int appleX; //positions of apple
@@ -24,18 +26,19 @@ public class GamePanel extends JPanel implements ActionListener {
 
     GamePanel(){
         random = new Random();
-        this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
+        this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT+50));
         this.setBackground(Color.black);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         startGame();
-
     }
     public void startGame(){
         newApple();
         running = true;
         timer = new Timer(DELAY, this);//add this?
         timer.start();
+        updateHighScores();
+
     }
     public void paintComponent(Graphics g){
         super.paintComponent(g);
@@ -57,19 +60,39 @@ public class GamePanel extends JPanel implements ActionListener {
             for(int i = 0; i<bodyParts; i++){
                 //head
                 if(i == 0) {
-                    g.setColor(Color.green);
-                    g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+                    if(bodyParts >= 35 ){
+                        g.setColor(new Color(255,51,153));
+                    }
+                    else if(bodyParts >= 25){
+                        g.setColor(new Color(242,179,255));
+                    }
+                    else if(bodyParts >= 20){
+                        g.setColor(new Color(255,221,153));
+                    }
+                    else if(bodyParts >= 15){
+                        g.setColor(new Color(242,255,179));
+                    }
+                    else {
+                        g.setColor(new Color(128, 255,102));
+                    }
                 }
                 //body
                 else{
-                    g.setColor(new Color(45, 180, 0));
-                    g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
-
+                    colorChangeBody(g);
                 }
+                //change body colors based on size
+
+
+                g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             }
-            g.setFont(new Font("Sitka Text", Font.BOLD, 35));
+
+            //bottom border line
+            g.setColor(new Color(153,255,187));
+            g.drawLine(0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+            //score text
+            g.setFont(new Font("Sitka Text", Font.BOLD, 45));
             FontMetrics metrics = getFontMetrics(g.getFont());
-            g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + applesEaten))/2, g.getFont().getSize());
+            g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + applesEaten))/2, 640);
 
         }
         else {
@@ -80,6 +103,27 @@ public class GamePanel extends JPanel implements ActionListener {
     public void newApple(){
         appleX = random.nextInt(SCREEN_WIDTH /UNIT_SIZE)*UNIT_SIZE;
         appleY = random.nextInt(SCREEN_HEIGHT /UNIT_SIZE)*UNIT_SIZE;
+    }
+    public void colorChangeBody(Graphics g){
+        if((bodyParts >= 10) && (bodyParts < 15)) {
+            g.setColor(new Color(128, 255, 170));
+        }
+        else if ((bodyParts >= 15) && (bodyParts < 20)){
+            g.setColor(new Color(221, 255, 153));
+        }
+        else if((bodyParts >= 20) && (bodyParts < 25)) {
+            g.setColor(new Color(255, 140, 25));
+        }
+        else if((bodyParts >= 25) && (bodyParts < 35)) {
+            g.setColor(new Color(196, 77, 255));
+        }
+        else if (bodyParts >= 35 ){
+            g.setColor(new Color(204,0 ,102));
+        }
+        else{
+            g.setColor(new Color(25,255,25));
+        }
+
     }
     public void move(){
 
@@ -128,21 +172,47 @@ public class GamePanel extends JPanel implements ActionListener {
             running = false;
         }
         if(!running){
+            if(bodyParts > topLength){
+                topLength = bodyParts;
+            }
+            if(applesEaten > highScore){
+                highScore = applesEaten;
+            }
             timer.stop();
         }
     }
+    public void updateHighScores(){
+        if(highScore < 1) {
+            highScore = 0;
+        }
+        if(topLength < 1){
+            topLength = 0;
+        }
+    }
     public void gameOver(Graphics g){
-        //Game OVer txt
-        g.setColor(Color.red);
-        g.setFont(new Font("Sitka Text", Font.BOLD, 75));
-        FontMetrics metrics = getFontMetrics(g.getFont());
-        g.drawString("GAME OVER", (SCREEN_WIDTH - metrics.stringWidth("Game Over ."))/2, SCREEN_HEIGHT/2);
         //score
+        g.setColor(Color.red);
         g.setFont(new Font("Sitka Text", Font.BOLD, 35));
         FontMetrics metricsScore = getFontMetrics(g.getFont());
         g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metricsScore.stringWidth("Score: " + applesEaten))/2, g.getFont().getSize());
+        //Game Over txt
+        g.setFont(new Font("Sitka Text", Font.BOLD, 75));
+        FontMetrics metrics = getFontMetrics(g.getFont());
+        g.drawString("GAME OVER", (SCREEN_WIDTH - metrics.stringWidth("Game Over ."))/2, SCREEN_HEIGHT/2);
+
+        //top score
+        g.setColor(Color.GREEN);
+        g.setFont(new Font("Sitka Text", Font.PLAIN, 40));
+        g.drawString("Top Score:" + highScore, 10, 125);
+        //game length
+        g.setFont(new Font("Sitka Text", Font.PLAIN, 40));
+        g.drawString("Length: " + bodyParts, 10, 75);
+        //top length
+        g.setFont(new Font("Sitka Text", Font.PLAIN, 40));
+        g.drawString("Top Length:" + topLength, (10), 175);
 
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if(running){
