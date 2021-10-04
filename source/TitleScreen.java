@@ -7,6 +7,8 @@ public class TitleScreen extends JFrame implements ActionListener {
     JFrame frame = new JFrame();
     JButton startGame = new JButton("Start Game");
 
+    ImageIcon image = new ImageIcon("snakePic.png");
+
 
     TitleScreen(){
         //button
@@ -45,6 +47,7 @@ public class TitleScreen extends JFrame implements ActionListener {
 
         frame.setLayout(new BorderLayout());
 
+        frame.setIconImage(image.getImage());
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setTitle("Snake Game");

@@ -1,16 +1,16 @@
-import javax.swing.JPanel;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.Random;
 
-public class GamePanel extends JPanel implements ActionListener {
+public class GamePanel extends JPanel implements ActionListener  {
 
     static final int SCREEN_WIDTH = 600;
     static final int SCREEN_HEIGHT = 600;
     static final int UNIT_SIZE = 25; //object size
     static final int GAME_UNITS = (SCREEN_WIDTH*SCREEN_HEIGHT)/UNIT_SIZE; // how many objects appear on screen
-    static final int DELAY = 100; //higher number, slower game
+    static final int DELAY = 75; //higher number, slower game
     final int[] x = new int[GAME_UNITS];
     final int[] y = new int[GAME_UNITS];
     int highScore;
@@ -23,36 +23,37 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean running = false;
     Timer timer;
     Random random;
+    JButton button = new JButton("return to menu");
+
 
     GamePanel(){
         random = new Random();
-        this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT+50));
+        this.setPreferredSize(new Dimension(SCREEN_WIDTH+10, SCREEN_HEIGHT + 100));
         this.setBackground(new Color(65,74,76));
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
         startGame();
+
     }
     public void startGame(){
         newApple();
         running = true;
-        timer = new Timer(DELAY, this);//add this?
+        timer = new Timer(DELAY, this);
         timer.start();
         updateHighScores();
-
     }
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         draw(g);
-
     }
     public void draw(Graphics g){
 
         if(running){
             //grid for display
-          for(int i = 0; i < SCREEN_HEIGHT/UNIT_SIZE;i++){
+/*            for(int i = 0; i < SCREEN_HEIGHT/UNIT_SIZE;i++){
                 g.drawLine(i*UNIT_SIZE, 0, i*UNIT_SIZE, SCREEN_HEIGHT);
                 g.drawLine(0, i*UNIT_SIZE, SCREEN_WIDTH, i*UNIT_SIZE);
-            }
+            }*/
             g.setColor(Color.red);
             g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
 
@@ -75,28 +76,27 @@ public class GamePanel extends JPanel implements ActionListener {
                     else {
                         g.setColor(new Color(128, 255,102));
                     }
+                    g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
                 }
                 //body
                 else{
+                    //change body colors based on size
                     colorChangeBody(g);
+                    g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
                 }
-                //change body colors based on size
-
-
-                g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             }
-
             //bottom border line
             g.setColor(new Color(153,255,187));
-            g.drawLine(0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+            g.drawLine(0, SCREEN_HEIGHT+25, SCREEN_WIDTH, SCREEN_HEIGHT+25);
+
             //score text
             g.setFont(new Font("Sitka Text", Font.BOLD, 45));
             FontMetrics metrics = getFontMetrics(g.getFont());
-            g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + applesEaten))/2, 640);
+            g.drawString("Score: " + applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + applesEaten))/2, SCREEN_HEIGHT+75);
 
         }
         else {
-            gameOver(g);
+           gameOver(g);
         }
 
     }
@@ -126,16 +126,23 @@ public class GamePanel extends JPanel implements ActionListener {
 
     }
     public void move(){
-
         for(int i = bodyParts; i > 0; i--){
             x[i] = x[i-1]; //moves by 1
             y[i] = y[i-1];
         }
         switch (direction) {
-            case 'U' -> y[0] = y[0] - UNIT_SIZE;
-            case 'D' -> y[0] = y[0] + UNIT_SIZE;
-            case 'L' -> x[0] = x[0] - UNIT_SIZE;
-            case 'R' -> x[0] = x[0] + UNIT_SIZE;
+            case 'U':
+                y[0] = y[0] - UNIT_SIZE;
+                break;
+            case 'D':
+                y[0] = y[0] + UNIT_SIZE;
+                break;
+            case 'L':
+                x[0] = x[0] - UNIT_SIZE;
+                break;
+            case 'R':
+                x[0] = x[0] + UNIT_SIZE;
+                break;
         }
     }
     public void checkApple() {
@@ -144,8 +151,8 @@ public class GamePanel extends JPanel implements ActionListener {
             applesEaten++;
             newApple();
         }
-
     }
+
     public void checkCollisions(){
         //checks for head hitting body
         for(int i = bodyParts; i > 0; i--){
@@ -178,7 +185,15 @@ public class GamePanel extends JPanel implements ActionListener {
             if(applesEaten > highScore){
                 highScore = applesEaten;
             }
+
             timer.stop();
+            updateHighScores();
+            button.setLocation((SCREEN_WIDTH)/2 - 75,350);
+            button.setSize(150,50);
+            button.setFont(new Font("Sitka Text", Font.PLAIN, 15));
+            button.addActionListener(this);
+            this.add(button);
+            this.setVisible(true);
         }
     }
     public void updateHighScores(){
@@ -188,9 +203,18 @@ public class GamePanel extends JPanel implements ActionListener {
         if(topLength < 1){
             topLength = 0;
         }
+        if(bodyParts > topLength){
+            topLength = bodyParts;
+        }
+        if(applesEaten > highScore){
+            highScore = applesEaten;
+        }
     }
+
     public void gameOver(Graphics g){
-        //score
+
+
+
         g.setColor(Color.red);
         g.setFont(new Font("Sitka Text", Font.BOLD, 35));
         FontMetrics metricsScore = getFontMetrics(g.getFont());
@@ -219,9 +243,15 @@ public class GamePanel extends JPanel implements ActionListener {
             move();
             checkApple();
             checkCollisions();
-
         }
         repaint();
+        //close game and return to menu
+        if(e.getSource()== button){
+            JComponent component = (JComponent) e.getSource();
+            Window win = SwingUtilities.getWindowAncestor(component);
+            win.dispose();
+            new TitleScreen();
+        }
     }
     public class MyKeyAdapter extends KeyAdapter{
         @Override
@@ -247,9 +277,7 @@ public class GamePanel extends JPanel implements ActionListener {
                         direction = 'R';
                     }
                     break;
-
             }
-
         }
     }
 }
