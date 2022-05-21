@@ -1,4 +1,4 @@
-# Snake Game Project
+# Snake Game Project -- inactive
 #### Followed Tutorial by BroCode video - https://www.youtube.com/watch?v=bI6e6qjJ8JQ 
  After finishing the tutorial, I built on top of the project. Adding in a main menu, highscore feature and visual indicators for player progress.
 
